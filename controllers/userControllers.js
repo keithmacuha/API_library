@@ -30,6 +30,7 @@ const createUser = async (req, res) => {
             const user = await User.create({
                 name: name,
                 email: email,
+                password: hashedPassword
             });
         
             if (user) {
