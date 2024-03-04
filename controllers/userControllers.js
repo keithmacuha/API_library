@@ -178,6 +178,10 @@ const updateUser = async (req, res) => {
         return res.status(400).json({ error: 'No such user' });
     }
 
+    if (req.user._id.toString() !== id) {
+        return res.status(403).json({ error: 'Unauthorized: You can only update your own user data' });
+    }
+
     // Find and update the user by ID with the provided data
     const updateUser = await User.findOneAndUpdate(
         {_id: id},
