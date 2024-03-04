@@ -156,7 +156,7 @@ const deleteUser = async (req, res) => {
             if (!deleteUser) {
                 return res.status(400).json({ error: 'No such user exists' });
             }
-        return res.status(200).json({ error: 'User Deleted Successfully' });
+        return res.status(200).json({ message: 'User Deleted Successfully' });
     }  else {
         return res.status(403).json({ error: 'Unauthorized: Only administrators can delete users' });
     } 
