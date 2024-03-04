@@ -75,7 +75,6 @@ const loginUser = async (req, res) => {
             return res.status(200).json({
                 _id: user._id,
                 email: user.email,
-                password: user.password
             })
         } else {
             return res.status(400).json({ message: 'Wrong email or password' });
@@ -110,7 +109,7 @@ const logoutUser = async (req, res) => {
 // Controller function to get all user profiles
 const getAllUserProfiles = async (req, res) => {
     try {
-        const users = await User.find({}).sort({createdAt: -1});
+        const users = await User.find({}).select('password -createdAt -updatedAt -__v').sort({createdAt: -1});
 
         return res.status(400).json(users);
     } catch (error) {
