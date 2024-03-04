@@ -34,10 +34,11 @@ const createUser = async (req, res) => {
             });
         
             if (user) {
+                const { _id, name, email } = user;
                 return res.status(201).json({
-                    _id: user._id,
-                    name: user.name,
-                    email: user.email,
+                    _id: _id,
+                    name: name,
+                    email: email,
                 })  
             } else {
                 return res.status(400).json({ error: 'Invalid user data '})
@@ -108,7 +109,7 @@ const logoutUser = async (req, res) => {
 // Controller function to get all user profiles
 const getAllUserProfiles = async (req, res) => {
     try {
-        const users = await User.find({}).sort({createdAt: -1});
+        const users = await User.find({}).select('password -createdAt -updatedAt -__v').sort({createdAt: -1});
 
         return res.status(400).json(users);
     } catch (error) {
