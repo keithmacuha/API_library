@@ -145,15 +145,22 @@ const deleteUser = async (req, res) => {
             return res.status(400).json({ error: 'No such user' });
         }
 
-        // Find and delete the user by ID
-        const deleteUser = await User.findOneAndDelete({ _id: id});
+         // Retrieve the user making the request
+         const user = req.user;
+         
+        // Check if the requesting user is an admin
+         if (user.isAdmin == true) {
+            // Find and delete the user by ID
+            const deleteUser = await User.findOneAndDelete({ _id: id});
 
-        if (!deleteUser) {
-            return res.status(400).json({ error: 'No such user exists' });
-        }
-
+            if (!deleteUser) {
+                return res.status(400).json({ error: 'No such user exists' });
+            }
         return res.status(200).json({ error: 'User Deleted Successfully' });
-    } catch (error) {
+    }  else {
+        return res.status(403).json({ error: 'Unauthorized: Only administrators can delete users' });
+    } 
+} catch (error) {
          // Handling the errors 
         return res.status(500).json({
             error: error.message,
