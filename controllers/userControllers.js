@@ -37,7 +37,6 @@ const createUser = async (req, res) => {
                     _id: user._id,
                     name: user.name,
                     email: user.email,
-                    password: user.password,
                 })  
             } else {
                 return res.status(400).json({ error: 'Invalid user data '})
