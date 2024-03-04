@@ -111,7 +111,7 @@ const getAllUserProfiles = async (req, res) => {
     try {
         const users = await User.find({}).select('-password -createdAt -updatedAt -__v').sort({createdAt: -1});
 
-        return res.status(400).json(users);
+        return res.status(200).json(users);
     } catch (error) {
         res.status(500).json({
             error: error.message,
