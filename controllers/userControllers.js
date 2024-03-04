@@ -138,18 +138,17 @@ const getUserProfile = async (req, res) => {
 // Controller function to delete a user by ID
 const deleteUser = async (req, res) => {
     try {
-        const { id } = req.params;
+        // Retrieve the user making the request
+        const user = req.user;
+        
+        if (user.isAdmin == true) {    
+            const { id } = req.params;
 
-         // Check if the provided ID is a valid MongoDB ObjectId
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'No such user' });
-        }
-
-         // Retrieve the user making the request
-         const user = req.user;
-         
-        // Check if the requesting user is an admin
-         if (user.isAdmin == true) {
+            // Check if the provided ID is a valid MongoDB ObjectId
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ error: 'No such user' });
+            }
+    
             // Find and delete the user by ID
             const deleteUser = await User.findOneAndDelete({ _id: id});
 
@@ -158,7 +157,7 @@ const deleteUser = async (req, res) => {
             }
         return res.status(200).json({ message: 'User Deleted Successfully' });
     }  else {
-        return res.status(403).json({ error: 'Unauthorized: Only administrators can delete users' });
+        return res.status(401).json({ error: 'Unauthorized: Only administrators can delete users' });
     } 
 } catch (error) {
          // Handling the errors 
