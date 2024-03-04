@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 // Controller function to get all books
 const getAllBooks = async (req, res) => {
     try {
-        const books = await Book.find({}).sort({ createdAt: -1 });;
+        const books = await Book.find({}).select('-updatedAt -createdAt -__v').sort({ createdAt: -1 });;
 
         if (!books) {
             return res.status(400).json({ message: 'No existing books' });
@@ -15,6 +15,27 @@ const getAllBooks = async (req, res) => {
         } catch (error) {
             console.error(error);
             return res.status(500).json({
+            error: error.message,
+            stack: error.stack
+        });
+    }
+};
+
+const getAllBooksByAuthor = async (req, res) => {
+    try {
+        const { author } = req.params;
+
+        // Find all books by the specified author
+        const booksByAuthor = await Book.find({ author: author }).select('-updatedAt -createdAt -__v').sort({ createdAt: -1 });
+
+        if (!booksByAuthor || booksByAuthor.length === 0) {
+            return res.status(404).json({ message: 'No books found for the specified author' });
+        }
+
+        return res.status(200).json(booksByAuthor);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
             error: error.message,
             stack: error.stack
         });
@@ -106,11 +127,16 @@ const updateBook = async (req, res) => {
         return res.status(400).json({ error: 'Invalid book ID' });
     }
 
+    // Ensure that the requesting user is an admin
+    if (!req.user.isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized: Only administrators can update book stocks' });
+    }
+
     // Find and update the book by ID with the provided data
     const updatedBook = await Book.findOneAndUpdate(
         {_id: id}, 
         {...req.body}, 
-        {new: true });
+        {new: true }).select({ createdAt: 0, updatedAt: 0, __v: 0 });
 
     if (!updatedBook) {
         return res.status(400).json({ error: 'Book not found' });
@@ -134,6 +160,11 @@ const deleteBook = async (req, res) => {
             return res.status(400).json({ error: 'Invalid book ID' });
         }
 
+        // Ensure that the requesting user is an admin
+        if (!req.user.isAdmin) {
+            return res.status(403).json({ error: 'Unauthorized: Only administrators can delete books' });
+        }
+
          // Find and delete the book by ID
         const deletedBook = await Book.findOneAndDelete({_id: id});
 
@@ -153,5 +184,5 @@ const deleteBook = async (req, res) => {
 }
 
 // Export all the book controller functions
-module.exports = { getAllBooks, getSpecificBook, createBook, updateBook, deleteBook };
+module.exports = { getAllBooks, getAllBooksByAuthor, getSpecificBook, createBook, updateBook, deleteBook };
 

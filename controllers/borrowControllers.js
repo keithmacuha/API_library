@@ -57,34 +57,24 @@ const borrowBook = async (req, res) => {
 // Controller function to get all borrowed books
 const getAllBorrowedBooks = async (req, res) => {
     try {
+        // Retrieve the user making the request
+        const user = req.user;
+
+        // Check if the user is an admin
+        if (user.isAdmin) {
+        
         // Fetching all borrowed books with details of the associated book and user, sorted by creation date in descending order
-        const borrowedBooks = await BorrowedBook.find({}).populate('book').populate('user').sort({ createdAt: -1 });
+        const borrowedBooks = await BorrowedBook.find({}).select('-createdAt -updateAt -__v');
 
          // Check if there are no borrowed books and respond accordingly
         if (!borrowedBooks || borrowedBooks.length === 0) {
             return res.status(404).json({ message: 'No borrowed books found' });
         }
-
-        // Map the results to include book title along with other details
-        const allBorrowedBooks = borrowedBooks.map(borrowedBook => ({
-            _id: borrowedBook._id,
-            user: {
-                _id: borrowedBook.user._id,
-                name: borrowedBook.user.name
-            },
-            book: {
-                _id: borrowedBook.book._id,
-                title: borrowedBook.book.title,
-            },
-            borrowDate: borrowedBook.borrowDate,
-            returnDate: borrowedBook.returnDate,
-            returned: borrowedBook.returned,
-            createdAt: borrowedBook.createdAt,
-        }));
-
-        return res.status(200).json(allBorrowedBooks);
+        return res.status(200).json(borrowedBooks);
+    } else {
+        return res.status(403).json({ message: 'Unauthorized: Only administrators can view all borrowed books' });
+    }
     } catch (error) {
-        console.error(error);
         res.status(500).json({
             error: error.message,
             stack: error.stack
@@ -109,7 +99,7 @@ const getSpecificBorrowedBook = async (req, res) => {
         if (!specificBorrowedBook) {
             return res.status(404).json({ error: 'Borrowed book not found' });
         }
-
+        
         res.status(200).json({
             _id: specificBorrowedBook._id,
             user: {

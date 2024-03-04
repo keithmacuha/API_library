@@ -172,27 +172,31 @@ const deleteUser = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         // Extract the user ID from the request parameters
-    const { id } = req.params;
+     const user = req.user;
 
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ error: 'No such user' });
-    }
+        if (user.isAdmin) {
+            const { id } = req.params;
 
-    if (req.user._id.toString() !== id) {
-        return res.status(403).json({ error: 'Unauthorized: You can only update your own user data' });
-    }
+            if(!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ error: 'No such user' });
+            }
 
-    // Find and update the user by ID with the provided data
-    const updateUser = await User.findOneAndUpdate(
-        {_id: id},
-        {...req.body},
-        {new: true}
-    );
+            const updatedUser = await User.findOneAndUpdate(
+                {_id: id},
+                {...req.body},
+                {new: true}
+            ).select({ createdAt: 0, updatedAt: 0, __v: 0, password: 0 });
 
-    if (!updateUser) {
-        return res.status(400).json({ error: 'No such user' });
-    }
-    return res.status(200).json(updateUser);
+            if (!updatedUser) {
+                return res.status(400).json({ error: 'No such user' });
+            }
+                
+            return res.status(200).json(updatedUser);
+
+        } else {
+            return res.status(401).json({ error: 'Unauthorized: You can only update your own user data' });
+        }
+
     } catch (error) {
         return res.status(500).json({
             error: error.message,
