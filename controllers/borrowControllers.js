@@ -26,6 +26,11 @@ const borrowBook = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Check if the user is an admin, admins are not allowed to borrow books
+        if (user.isAdmin) {
+            return res.status(403).json({ error: 'Unauthorized: Administrators are not allowed to borrow books' });
+        }
+
         // Create a new borrowed book entry in the database
         const borrowedBook = await BorrowedBook.create({
             user: userId,
@@ -131,6 +136,11 @@ const returnBook = async (req, res) => {
         const { borrowId  } = req.params;
         const { quantity } = req.body;
 
+        // Check if the quantity is a whole number
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+            return res.status(400).json({ error: 'Invalid quantity. Only whole numbers are allowed.' });
+        }
+
         if (!mongoose.Types.ObjectId.isValid(borrowId)) {
             return res.status(400).json({ error: 'Invalid Borrow ID' });
         }
@@ -144,6 +154,12 @@ const returnBook = async (req, res) => {
         // Check if the book has already been returned
         if (borrowedBook.returned) {
             return res.status(400).json({ error: 'Book already returned' });
+        }
+
+        // Check if the user is an admin, admins are not allowed to return books
+        const user = req.user;
+        if (user.isAdmin) {
+            return res.status(403).json({ error: 'Unauthorized: Administrators are not allowed to return books' });
         }
 
         if ( quantity > borrowedBook.quantity ) {
